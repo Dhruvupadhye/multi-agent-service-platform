@@ -2,3 +2,5 @@
 __pycache__/
 *.py[cod]
 data/chroma/
+credentials.json
+token.json
