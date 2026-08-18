@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.config import settings
 from app.utils.logger import logger
 from app.utils.vector_db import vector_db
+from app.routes.email_routes import router as email_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -32,3 +33,5 @@ async def health_check():
         "project": settings.PROJECT_NAME,
         "version": settings.VERSION
     }
+
+app.include_router(email_router, prefix="/api/v1")

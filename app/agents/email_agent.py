@@ -1,6 +1,6 @@
 import joblib
 from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from app.utils.vector_db import vector_db
 from app.utils.notifier import notifier
 from app.utils.logger import logger
