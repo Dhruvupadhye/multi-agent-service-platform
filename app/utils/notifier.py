@@ -1,13 +1,18 @@
 import os
+from app.config import settings
 from twilio.rest import Client
+from dotenv import load_dotenv
 from app.utils.logger import logger
+
+load_dotenv()  # Load environment variables from .env file
 
 class NotificationService:
     def __init__(self):
-        self.sid = os.getenv("TWILIO_ACCOUNT_SID")
-        self.auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-        self.from_whatsapp = os.getenv("TWILIO_WHATSAPP_NUMBER")
-        self.to_whatsapp = os.getenv("USER_WHATSAPP_NUMBER")
+    # Fetching directly from your validated config!
+        self.sid = settings.TWILIO_ACCOUNT_SID
+        self.auth_token = settings.TWILIO_AUTH_TOKEN
+        self.from_whatsapp = settings.TWILIO_WHATSAPP_NUMBER
+        self.to_whatsapp = settings.USER_WHATSAPP_NUMBER
         
         if self.sid and self.auth_token:
             self.client = Client(self.sid, self.auth_token)

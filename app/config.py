@@ -1,5 +1,6 @@
 import os
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Multi-Agent Office Platform"
@@ -9,10 +10,12 @@ class Settings(BaseSettings):
     PORT: int = 8000
     CHROMA_PERSIST_DIR: str = "./data/chroma"
     OPENAI_API_KEY: str
-    TWILIO_ACCOUNT_SID: str
-    TWILIO_AUTH_TOKEN: str
-    TWILIO_WHATSAPP_NUMBER: str
-    USER_WHATSAPP_NUMBER: str
+    
+    # Twilio Settings (Using Optional so it doesn't crash if missing)
+    TWILIO_ACCOUNT_SID: Optional[str] = None
+    TWILIO_AUTH_TOKEN: Optional[str] = None
+    TWILIO_WHATSAPP_NUMBER: Optional[str] = None
+    USER_WHATSAPP_NUMBER: Optional[str] = None
 
     class Config:
         env_file = ".env"
