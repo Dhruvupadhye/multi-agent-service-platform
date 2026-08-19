@@ -4,11 +4,16 @@ from langchain_core.prompts import PromptTemplate
 from app.utils.vector_db import vector_db
 from app.utils.notifier import notifier
 from app.utils.logger import logger
+from app.config import settings
 
 class EmailAgent:
     def __init__(self):
         self.classifier = joblib.load("app/models/spam_classifier.pkl")
-        self.llm = ChatOpenAI(temperature=0.2, model="gpt-4o-mini")
+        self.llm = ChatOpenAI(
+    temperature=0.2,
+    model="gpt-4o-mini",
+    api_key=settings.OPENAI_API_KEY
+)
         self.chroma_collection = vector_db.get_or_create_collection("email_summaries")
 
     def classify(self, text: str) -> str:
