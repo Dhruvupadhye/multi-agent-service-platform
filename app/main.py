@@ -5,6 +5,7 @@ from app.utils.logger import logger
 from app.utils.vector_db import vector_db
 from app.routes.email_routes import router as email_router
 from app.routes.media_routes import router as media_router
+from app.routes.agent_routes import router as agent_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,3 +38,4 @@ async def health_check():
 
 app.include_router(email_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
+app.include_router(agent_router, prefix="/api/v1")

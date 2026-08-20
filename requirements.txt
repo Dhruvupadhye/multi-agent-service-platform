@@ -19,3 +19,4 @@ twilio
 python-dotenv
 pydantic
 python-multipart
+ ddgs
