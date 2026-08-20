@@ -1,43 +1,37 @@
-🤖 Multi-Agent Office Platform
-An AI-powered, voice-enabled multi-agent office automation platform. Built with FastAPI, Streamlit, and LangGraph, this framework automates daily office tasks like email processing, calendar scheduling, and document analysis, all orchestrated through voice commands.
+# 🤖 Multi-Agent Service Platform
 
-🌟 Key Features
-🎙️ Voice-Controlled Orchestrator: Speak directly into the UI. The LangGraph Supervisor Agent analyzes your intent and intelligently routes the command to the correct specialized agent.
+An AI-powered, voice-enabled multi-agent office automation platform. Built with FastAPI, Streamlit, and LangGraph, this framework automates daily office tasks like email processing, calendar scheduling, and document analysis, all orchestrated seamlessly through voice commands.
 
-📧 Smart Email Agent: Fetches unread emails via the Gmail API, filters out spam using a custom-trained Machine Learning classifier, and summarizes the rest.
+## 🌟 Key Features
 
-📅 Reminder & Calendar Agent: Extracts meeting details from natural language and automatically schedules events on your Google Calendar.
+* **🎙️ Voice-Controlled Orchestrator:** Speak directly into the UI. The LangGraph Supervisor Agent analyzes your intent and intelligently routes the command to the correct specialized agent.
+* **📧 Smart Email Agent:** Fetches unread emails via the Gmail API, filters out spam using a custom-trained Machine Learning classifier, and summarizes the rest.
+* **📅 Reminder & Calendar Agent:** Extracts meeting details from natural language and automatically schedules events on your Google Calendar.
+* **📱 Real-Time Notifications:** Pushes email digests and meeting confirmations directly to your phone via Twilio's WhatsApp API.
+* **📚 Document RAG Agent:** Upload PDFs to build a local knowledge base (ChromaDB) and ask the assistant questions about your documents. Falls back to web search if the answer isn't locally available.
+* **✍️ Email Composer Agent:** Drafts professional emails based on your voice instructions, utilizing data retrieved from your document knowledge base if needed.
 
-📱 Real-Time Notifications: Pushes email digests and meeting confirmations directly to your phone via Twilio's WhatsApp API.
+---
 
-📚 Document RAG Agent: Upload PDFs to build a local knowledge base (ChromaDB) and ask the assistant questions about your documents. Falls back to web search if the answer isn't locally available.
+## 🛠️ Tech Stack
 
-✍️ Email Composer Agent: Drafts professional emails based on your voice instructions, utilizing data retrieved from your document knowledge base if needed.
+**Backend (The Brain)**
+* **Framework:** FastAPI
+* **AI/Orchestration:** LangChain, LangGraph, OpenAI (`gpt-4o-mini`)
+* **Vector Database:** ChromaDB (Local)
+* **Machine Learning:** `scikit-learn`, `joblib` (Custom Spam Classifier)
+* **Integrations:** Google Workspace APIs (Gmail, Calendar), Twilio API (WhatsApp)
 
-🛠️ Tech Stack:
-Backend (The Brain) :
+**Frontend (The Face)**
+* **Framework:** Streamlit
+* **Audio Processing:** Streamlit audio input & local Whisper/API transcription
 
-Framework: FastAPI
+---
 
-AI/Orchestration: LangChain, LangGraph, OpenAI (gpt-4o-mini)
-
-Vector Database: ChromaDB (Local)
-
-Machine Learning: scikit-learn, joblib (Custom Spam Classifier)
-
-Integrations: Google Workspace APIs (Gmail, Calendar), Twilio API (WhatsApp)
-
-Frontend (The Face) :
-
-Framework: Streamlit
-
-Audio Processing: Streamlit audio input & local Whisper/API transcription
-
-Markdown
 ## 📂 Project Structure
 
 ```text
-multi-agent_office_platform/
+multi-agent-service-platform/
 │
 ├── app/                     # Backend API & Agent Logic
 │   ├── main.py              # FastAPI entry point
@@ -82,8 +76,8 @@ An OpenAI API Key.
 
 2. Clone the Repository
 Bash
-git clone https://github.com/Dhruvupadhye/multi-agent-service-platform.git
-cd multi-agent-office-platform
+git clone [https://github.com/Dhruvupadhye/multi-agent-service-platform.git](https://github.com/Dhruvupadhye/multi-agent-service-platform.git)
+cd multi-agent-service-platform
 3. Create a Virtual Environment & Install Dependencies
 Bash
 python -m venv venv
@@ -126,11 +120,6 @@ Navigate to the local Streamlit URL (usually http://localhost:8501) and test the
 
 Check Emails: "Hey, check my inbox and summarize my unread emails."
 
-Schedule Meetings: "Book a code review with the engineering team for tomorrow at 3 PM."
-
-Draft Emails: "Draft an urgent email to the marketing team asking for the Q3 graphics by Friday."
-
-Query Documents: Upload a PDF in the Upload Documents tab, then ask: "What are the key takeaways from the Q2 financial report?"
 Schedule Meetings: "Book a code review with the engineering team for tomorrow at 3 PM."
 
 Draft Emails: "Draft an urgent email to the marketing team asking for the Q3 graphics by Friday."
