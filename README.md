@@ -14,8 +14,8 @@ An AI-powered, voice-enabled multi-agent office automation platform. Built with 
 
 ✍️ Email Composer Agent: Drafts professional emails based on your voice instructions, utilizing data retrieved from your document knowledge base if needed.
 
-🛠️ Tech Stack
-Backend (The Brain)
+🛠️ Tech Stack:
+Backend (The Brain) :
 
 Framework: FastAPI
 
@@ -27,7 +27,7 @@ Machine Learning: scikit-learn, joblib (Custom Spam Classifier)
 
 Integrations: Google Workspace APIs (Gmail, Calendar), Twilio API (WhatsApp)
 
-Frontend (The Face)
+Frontend (The Face) :
 
 Framework: Streamlit
 
@@ -69,6 +69,7 @@ multi-agent_office_platform/
 ├── .env                     # API Keys & Secrets
 ├── credentials.json         # Google Cloud OAuth Credentials
 └── requirements.txt         # Python dependencies
+```
 🚀 Installation & Setup
 1. Prerequisites
 Python 3.10+
