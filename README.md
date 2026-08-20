@@ -33,6 +33,7 @@ Framework: Streamlit
 
 Audio Processing: Streamlit audio input & local Whisper/API transcription
 
+Markdown
 ## 📂 Project Structure
 
 ```text
@@ -68,7 +69,6 @@ multi-agent_office_platform/
 ├── .env                     # API Keys & Secrets
 ├── credentials.json         # Google Cloud OAuth Credentials
 └── requirements.txt         # Python dependencies
-```
 🚀 Installation & Setup
 1. Prerequisites
 Python 3.10+
@@ -125,6 +125,11 @@ Navigate to the local Streamlit URL (usually http://localhost:8501) and test the
 
 Check Emails: "Hey, check my inbox and summarize my unread emails."
 
+Schedule Meetings: "Book a code review with the engineering team for tomorrow at 3 PM."
+
+Draft Emails: "Draft an urgent email to the marketing team asking for the Q3 graphics by Friday."
+
+Query Documents: Upload a PDF in the Upload Documents tab, then ask: "What are the key takeaways from the Q2 financial report?"
 Schedule Meetings: "Book a code review with the engineering team for tomorrow at 3 PM."
 
 Draft Emails: "Draft an urgent email to the marketing team asking for the Q3 graphics by Friday."
