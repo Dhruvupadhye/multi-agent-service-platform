@@ -81,7 +81,7 @@ An OpenAI API Key.
 
 2. Clone the Repository
 Bash
-git clone https://github.com/yourusername/multi-agent-office-platform.git
+git clone https://github.com/Dhruvupadhye/multi-agent-service-platform.git
 cd multi-agent-office-platform
 3. Create a Virtual Environment & Install Dependencies
 Bash
