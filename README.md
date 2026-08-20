@@ -68,7 +68,7 @@ multi-agent_office_platform/
 ├── .env                     # API Keys & Secrets
 ├── credentials.json         # Google Cloud OAuth Credentials
 └── requirements.txt         # Python dependencies
-
+```
 🚀 Installation & Setup
 1. Prerequisites
 Python 3.10+
