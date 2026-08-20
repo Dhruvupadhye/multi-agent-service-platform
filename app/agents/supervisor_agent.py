@@ -2,66 +2,120 @@ from typing import TypedDict, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
+
+# Agent Imports
 from app.agents.assistant_agent import assistant_agent
 from app.agents.composer_agent import composer_agent
+from app.agents.email_agent import email_agent
+from app.agents.reminder_agent import reminder_agent  # NEW!
+
+# Utility Imports
+from app.utils.gmail_helper import gmail_helper
+from app.utils.notifier import notifier  # NEW!
 from app.utils.logger import logger
 
-# 1. Define the State (the memory shared between agents)
 class AgentState(TypedDict):
     user_input: str
-    needs_research: bool
+    intent: str  
     research_context: Optional[str]
     final_email: Optional[dict]
+    action_result: Optional[str]
+    event_link: Optional[str]  # NEW!
 
 class SupervisorAgent:
     def __init__(self):
         self.llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
-        
-        # 2. Initialize the LangGraph
         workflow = StateGraph(AgentState)
         
-        # Add our specialized nodes
+        # Add all specialized nodes
         workflow.add_node("router", self.router_node)
         workflow.add_node("researcher", self.researcher_node)
         workflow.add_node("composer", self.composer_node)
+        workflow.add_node("email_summarizer", self.email_summarizer_node)
+        workflow.add_node("scheduler", self.scheduler_node)  # NEW!
         
-        # Set the entry point
         workflow.set_entry_point("router")
         
-        # Add conditional routing logic
+        # Update conditional routing
         workflow.add_conditional_edges(
             "router",
             self.route_decision,
             {
-                "researcher": "researcher",  # If it needs data, go here first
-                "composer": "composer"       # If no data needed, skip to composer
+                "researcher": "researcher",
+                "composer": "composer",
+                "email_summarizer": "email_summarizer",
+                "scheduler": "scheduler"  # NEW!
             }
         )
         
-        # Handoff data from researcher directly to composer
+        # Define edge paths
         workflow.add_edge("researcher", "composer")
-        # End the workflow after composing
         workflow.add_edge("composer", END)
+        workflow.add_edge("email_summarizer", END)
+        workflow.add_edge("scheduler", END)  # NEW!
         
         self.app = workflow.compile()
 
     def router_node(self, state: AgentState):
-        logger.info("Supervisor: Analyzing input for data dependencies...")
+        logger.info("Supervisor: Analyzing user intent...")
         prompt = PromptTemplate.from_template(
-            "Analyze the request: '{input}'. Does this require looking up specific facts, uploaded documents, or data? Respond with only YES or NO."
+            """Analyze the user's voice request: '{input}'. 
+            Classify it into EXACTLY ONE of these categories:
+            - RESEARCH (needs factual lookup in uploaded documents)
+            - SUMMARIZE_EMAILS (wants to fetch, read, or summarize their inbox/emails)
+            - SCHEDULE_EVENT (wants to set a reminder, book a meeting, or add to calendar)
+            - COMPOSE (wants to draft a new email without looking up documents)
+            
+            Respond with ONLY the category word."""
         )
         chain = prompt | self.llm
-        response = chain.invoke({"input": state["user_input"]}).content.strip().upper()
+        intent = chain.invoke({"input": state["user_input"]}).content.strip().upper()
         
-        state["needs_research"] = "YES" in response
+        state["intent"] = intent
         return state
 
     def route_decision(self, state: AgentState):
-        if state.get("needs_research"):
-            logger.info("Supervisor Decision: Route -> RAG Assistant")
+        intent = state.get("intent", "COMPOSE")
+        logger.info(f"Supervisor Decision: Route -> {intent}")
+        
+        if intent == "SUMMARIZE_EMAILS":
+            return "email_summarizer"
+        elif intent == "SCHEDULE_EVENT":
+            return "scheduler"
+        elif intent == "RESEARCH":
             return "researcher"
-        logger.info("Supervisor Decision: Route -> Email Composer")
         return "composer"
+
+    def scheduler_node(self, state: AgentState):
+        logger.info("Supervisor: Scheduling calendar event...")
+        
+        result = reminder_agent.schedule_event(state["user_input"])
+        
+        if result["status"] == "success":
+            state["action_result"] = f"Successfully scheduled: {result['summary']}!"
+            state["event_link"] = result["event_link"]
+            
+            # Trigger the Notification Agent (WhatsApp)
+            msg = f"📅 *New Event Scheduled*\n{result['summary']}\nLink: {result['event_link']}"
+            notifier.send_whatsapp(msg)
+        else:
+            state["action_result"] = f"Failed to schedule event: {result.get('message')}"
+            
+        return state
+
+    def email_summarizer_node(self, state: AgentState):
+        logger.info("Supervisor: Fetching and summarizing inbox...")
+        try:
+            raw_emails = gmail_helper.fetch_unread_emails(max_results=5) 
+            if raw_emails:
+                email_agent.process_emails(raw_emails)
+                state["action_result"] = f"Successfully fetched and summarized {len(raw_emails)} emails. Check your WhatsApp!"
+            else:
+                state["action_result"] = "Checked your inbox, but there are no new emails to summarize right now."
+        except Exception as e:
+            logger.error(f"Failed to process emails: {e}")
+            state["action_result"] = f"Attempted to fetch emails, but encountered an error: {str(e)}"
+        return state
 
     def researcher_node(self, state: AgentState):
         logger.info("Supervisor: Extracting data via RAG Assistant...")
@@ -71,26 +125,31 @@ class SupervisorAgent:
 
     def composer_node(self, state: AgentState):
         logger.info("Supervisor: Synthesizing and drafting email...")
-        # Merge the user's original request with the facts found by the RAG agent
         instructions = f"User Request: {state['user_input']}"
         if state.get("research_context"):
             instructions += f"\n\nContext/Data to include:\n{state['research_context']}"
         
-        # Hand off to the composer agent
         draft = composer_agent.chain.invoke({"transcript": instructions})
         state["final_email"] = draft
+        state["action_result"] = "Email drafted successfully."
         return state
 
     def orchestrate(self, text_input: str) -> dict:
-        # Initialize the state memory
         initial_state = {
             "user_input": text_input,
-            "needs_research": False,
+            "intent": "COMPOSE",
             "research_context": None,
-            "final_email": None
+            "final_email": None,
+            "action_result": None,
+            "event_link": None
         }
-        # Run the workflow!
         result = self.app.invoke(initial_state)
-        return result["final_email"]
+        
+        return {
+            "intent": result["intent"],
+            "final_email": result.get("final_email"),
+            "action_result": result.get("action_result"),
+            "event_link": result.get("event_link")
+        }
 
 supervisor_agent = SupervisorAgent()

@@ -5,3 +5,4 @@ data/chroma/
 credentials.json
 token.json
 .vscode
+calendar_token.json

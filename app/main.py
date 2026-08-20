@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.config import settings
 from app.utils.logger import logger
 from app.utils.vector_db import vector_db
+from app.utils.calendar_helper import calendar_helper
 from app.routes.email_routes import router as email_router
 from app.routes.media_routes import router as media_router
 from app.routes.agent_routes import router as agent_router
