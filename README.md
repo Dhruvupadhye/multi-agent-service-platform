@@ -88,10 +88,15 @@ Create a .env file in the root directory and add your keys:
 
 Code snippet
 OPENAI_API_KEY=your_openai_api_key
+
 TWILIO_ACCOUNT_SID=your_twilio_sid
+
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
+
 TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+
 YOUR_WHATSAPP_NUMBER=whatsapp:+1234567890
+
 5. Google API Credentials
 Download your OAuth 2.0 Client IDs from Google Cloud Console.
 
@@ -104,6 +109,7 @@ Before running the platform, you must generate the .pkl model file used by the E
 
 Bash
 python app/models/train_classifier.py
+
 💻 Running the Application
 This platform requires the backend and frontend to run concurrently. Open two separate terminal windows.
 
@@ -115,6 +121,7 @@ Terminal 2: Start the Streamlit Frontend
 
 Bash
 streamlit run frontend/app.py
+
 🎯 Usage Examples
 Navigate to the local Streamlit URL (usually http://localhost:8501) and test the platform using your voice:
 
