@@ -3,7 +3,7 @@ import sys
 
 def setup_logger(name: str = "office_automation") -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO) #the logger will output INFO, WARNING, ERROR, and CRITICAL messages, but will ignore DEBUG messages to keep your console clean. we can use DEBUG instead of INFO to see debug logs as well.
 
     if not logger.handlers:
         console_handler = logging.StreamHandler(sys.stdout)

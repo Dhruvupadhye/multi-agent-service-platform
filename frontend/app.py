@@ -690,57 +690,45 @@ with tab1:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # Ensure session id exists for multi-turn conversational context
+    if "session_id" not in st.session_state:
+        import uuid
+        st.session_state["session_id"] = str(uuid.uuid4())
+
     # Audio input
     audio_value = st.audio_input("🎙️ Record your voice command")
 
     if audio_value:
         with st.spinner("🧠 Supervisor Agent is analyzing your command…"):
             files = {"file": ("audio.wav", audio_value, "audio/wav")}
-            response = requests.post(
-                f"{API_BASE}/agents/orchestrate-voice/", files=files
-            )
+            params = {"session_id": st.session_state["session_id"]}
+            try:
+                response = requests.post(
+                    f"{API_BASE}/agents/orchestrate-voice/", files=files, params=params
+                )
+            except Exception as conn_err:
+                response = None
 
-            if response.status_code == 200:
+            if response is not None and response.status_code == 200:
                 data = response.json()
-                intent = data.get("intent")
+                intent = data.get("intent", "")
+                response_type = data.get("response_type", "")
+                raw_transcript = data.get("raw_transcript", "")
+                action_res = data.get("action_result", "")
+                direct_ans = data.get("direct_answer", "")
 
-                # ── Email Summarization ──────────────────────────────────
-                if intent == "SUMMARIZE_EMAILS":
-                    st.success("✅ Inbox processed successfully!")
-                    st.markdown(
-                        f"""
-                        <div class="result-card success">
-                            <div class="result-label">Inbox Summary</div>
-                            <div class="result-value">{data.get("action_result")}</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                if raw_transcript:
+                    st.caption(f"🎙️ **Transcribed Command:** *\"{raw_transcript}\"*")
 
-                # ── Scheduling ───────────────────────────────────────────
-                elif intent == "SCHEDULE_EVENT":
-                    st.success("✅ Event scheduled!")
-                    st.markdown(
-                        f"""
-                        <div class="result-card success">
-                            <div class="result-label">Event Details</div>
-                            <div class="result-value">{data.get("action_result")}</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                    event_link = data.get("event_link")
-                    if event_link:
-                        st.markdown(
-                            f'<a class="calendar-link" href="{event_link}" '
-                            f'target="_blank">📅 View on Google Calendar</a>',
-                            unsafe_allow_html=True,
-                        )
+                # ── Clarification / Ambiguous / Empty ────────────────────
+                if data.get("requires_clarification") or intent in ("UNKNOWN_OR_AMBIGUOUS", "INVALID_OR_EMPTY") or response_type == "clarification":
+                    clarify_text = direct_ans or action_res or data.get("clarification_question") or "Could you please clarify your request?"
+                    st.warning(f"❓ {clarify_text}")
 
-                # ── Email Drafting ───────────────────────────────────────
-                else:
+                # ── Explicit Email Drafting ──────────────────────────────
+                elif intent == "COMPOSE_EMAIL" or response_type == "email_draft":
                     st.success("✅ Email drafted successfully!")
-                    final_email = data.get("final_email", {})
+                    final_email = data.get("final_email", {}) or {}
 
                     col_subject, col_meta = st.columns([3, 1])
                     with col_subject:
@@ -772,6 +760,140 @@ with tab1:
                         final_email.get("body", ""),
                         height=250,
                         key="email_draft_body",
+                    )
+
+                # ── Email Summarization ──────────────────────────────────
+                elif intent == "SUMMARIZE_EMAILS" or response_type == "email_summary":
+                    st.success("✅ Inbox processed successfully!")
+                    st.markdown(
+                        f"""
+                        <div class="result-card success">
+                            <div class="result-label">Inbox Summary</div>
+                            <div class="result-value">{action_res}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    summaries_data = data.get("data")
+                    if isinstance(summaries_data, list) and summaries_data:
+                        with st.expander("📬 Individual Email Summaries"):
+                            for item in summaries_data:
+                                cat = item.get("category", "General").upper()
+                                summ = item.get("summary", "")
+                                st.markdown(f"**[{cat}]** {summ}")
+
+                # ── Email Search ─────────────────────────────────────────
+                elif intent == "EMAIL_SEARCH" or response_type == "email_search":
+                    st.success("🔍 Email search completed!")
+                    st.markdown(
+                        f"""
+                        <div class="result-card success">
+                            <div class="result-label">Search Results</div>
+                            <div class="result-value">{action_res}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                # ── Scheduling Calendar Event ────────────────────────────
+                elif intent == "SCHEDULE_EVENT" or response_type == "calendar_event":
+                    st.success("✅ Event scheduled!")
+                    st.markdown(
+                        f"""
+                        <div class="result-card success">
+                            <div class="result-label">Event Details</div>
+                            <div class="result-value">{action_res}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    event_link = data.get("event_link")
+                    if event_link:
+                        st.markdown(
+                            f'<a class="calendar-link" href="{event_link}" '
+                            f'target="_blank">📅 View on Google Calendar</a>',
+                            unsafe_allow_html=True,
+                        )
+
+                # ── Calendar Viewing / Existing Meetings ─────────────────
+                elif intent == "CALENDAR_VIEW" or response_type == "calendar_list":
+                    st.info("📅 Calendar Schedule")
+                    st.markdown(
+                        f"""
+                        <div class="result-card info">
+                            <div class="result-label">Upcoming Schedule</div>
+                            <div class="result-value" style="white-space: pre-line;">{action_res}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                # ── Setting Reminders ────────────────────────────────────
+                elif intent == "SET_REMINDER" or response_type == "reminder":
+                    st.success("⏰ Reminder created!")
+                    st.markdown(
+                        f"""
+                        <div class="result-card success">
+                            <div class="result-label">Reminder Confirmation</div>
+                            <div class="result-value">{action_res}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    event_link = data.get("event_link")
+                    if event_link:
+                        st.markdown(
+                            f'<a class="calendar-link" href="{event_link}" '
+                            f'target="_blank">📅 View on Google Calendar</a>',
+                            unsafe_allow_html=True,
+                        )
+
+                # ── Document Query ───────────────────────────────────────
+                elif intent == "DOCUMENT_QUERY" or response_type == "document_answer":
+                    st.success("📄 Document Information")
+                    st.markdown(
+                        f"""
+                        <div class="result-card success">
+                            <div class="result-label">Document Answer</div>
+                            <div class="result-value">{direct_ans or action_res}</div>
+                            <div class="result-meta">📌 Source: {data.get("source", "Uploaded Documents")}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    if data.get("context_preview"):
+                        with st.expander("📄 Document Context Preview"):
+                            st.write(data.get("context_preview"))
+
+                # ── Web Research ─────────────────────────────────────────
+                elif intent == "RESEARCH" or response_type == "research_answer":
+                    st.success("🌐 Web Research Findings")
+                    st.markdown(
+                        f"""
+                        <div class="result-card success">
+                            <div class="result-label">Research Summary</div>
+                            <div class="result-value">{direct_ans or action_res}</div>
+                            <div class="result-meta">📌 Source: {data.get("source", "DuckDuckGo Web Search")}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    if data.get("context_preview"):
+                        with st.expander("🔍 Search Findings Preview"):
+                            st.write(data.get("context_preview"))
+
+                # ── General Query & Conversational Assistant ─────────────
+                else:
+                    st.success("💡 Assistant Answer")
+                    st.markdown(
+                        f"""
+                        <div class="result-card info">
+                            <div class="result-label">Response</div>
+                            <div class="result-value">{direct_ans or action_res or 'I have processed your request.'}</div>
+                            <div class="result-meta">📌 Source: {data.get("source", "AI Assistant")}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
                     )
             else:
                 st.error(

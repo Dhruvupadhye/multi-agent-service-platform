@@ -5,6 +5,7 @@ from app.utils.vector_db import vector_db
 from app.utils.notifier import notifier
 from app.utils.logger import logger
 from app.config import settings
+from app.utils.gmail_helper import gmail_helper
 
 class EmailAgent:
     def __init__(self):
@@ -60,7 +61,32 @@ class EmailAgent:
                 [f"• [{item['category'].upper()}] {item['summary']}" for item in summary_report]
             )
             notifier.send_whatsapp(formatted_msg)
-
         return summary_report
+
+    def search_emails(self, query: str, max_results: int = 5) -> dict:
+        logger.info(f"EmailAgent searching emails for query: {query}")
+        emails = gmail_helper.search_emails(query=query, max_results=max_results)
+        if not emails:
+            return {
+                "count": 0,
+                "summary": f"No emails found matching '{query}'.",
+                "emails": []
+            }
+        
+        email_items = []
+        for mail in emails:
+            sender = mail.get("sender", "Unknown Sender")
+            subject = mail.get("subject", "No Subject")
+            snippet = mail.get("body", "")[:150]
+            date_str = mail.get("date", "")
+            date_info = f" ({date_str})" if date_str else ""
+            email_items.append(f"• From: {sender}{date_info}\n  Subject: {subject}\n  Snippet: {snippet}")
+        
+        summary_text = f"Found {len(emails)} email(s) matching your search:\n\n" + "\n\n".join(email_items)
+        return {
+            "count": len(emails),
+            "summary": summary_text,
+            "emails": emails
+        }
 
 email_agent = EmailAgent()

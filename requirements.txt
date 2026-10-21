@@ -18,5 +18,6 @@ duckduckgo-search
 twilio
 python-dotenv
 pydantic
+pydantic-settings
 python-multipart
- ddgs
+ddgs

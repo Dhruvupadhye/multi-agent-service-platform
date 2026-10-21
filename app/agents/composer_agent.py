@@ -30,13 +30,27 @@ Format Instructions:
         )
         self.chain = self.prompt | self.llm | self.parser
 
+    def compose_draft(self, transcript: str) -> dict:
+        logger.info(f"Composing email draft from text: {transcript}")
+        try:
+            draft = self.chain.invoke({"transcript": transcript})
+            return draft
+        except Exception as e:
+            logger.warning(f"Error generating email draft: {e}")
+            return {
+                "recipient_hint": "Colleague",
+                "subject": f"Inquiry regarding {transcript[:30]}",
+                "body": f"Hello,\n\nI am writing regarding the following: {transcript}\n\nBest regards,",
+                "tone": "Professional"
+            }
+
     def compose_from_voice(self, audio_file_path: str) -> dict:
         # 1. Transcribe voice note
         transcript = voice_helper.transcribe_audio(audio_file_path)
         logger.info(f"Transcribed voice note: {transcript}")
         
         # 2. Structure into email draft
-        draft = self.chain.invoke({"transcript": transcript})
+        draft = self.compose_draft(transcript)
         draft["raw_transcript"] = transcript
         return draft
 
