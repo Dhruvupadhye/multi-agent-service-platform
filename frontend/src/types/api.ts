@@ -39,6 +39,7 @@ export interface CalendarEventItem {
   end?: { dateTime?: string; date?: string };
   description?: string;
   htmlLink?: string;
+  status?: string;
 }
 
 export interface EmailItem {
@@ -49,6 +50,68 @@ export interface EmailItem {
   body?: string;
   category?: string;
   summary?: string;
+}
+
+export interface ComposeEmailRequest {
+  prompt: string;
+  recipient_hint?: string;
+}
+
+export interface SendEmailRequest {
+  to: string;
+  subject: string;
+  body: string;
+}
+
+export interface SendEmailResponse {
+  status: string;
+  id: string;
+  to: string;
+  subject: string;
+  message: string;
+  mock?: boolean;
+}
+
+export interface EmailSummaryItem {
+  id: string;
+  category: string;
+  summary: string;
+}
+
+export interface CreateCalendarEventRequest {
+  summary: string;
+  start_time_iso: string;
+  end_time_iso: string;
+  description?: string;
+}
+
+export interface CreateReminderRequest {
+  title: string;
+  datetime_iso: string;
+  notes?: string;
+  send_whatsapp?: boolean;
+}
+
+export interface ReminderItem {
+  id: string;
+  title: string;
+  raw_summary?: string;
+  scheduled_time: string;
+  description?: string;
+  event_link?: string;
+}
+
+export interface DocumentItem {
+  filename: string;
+  total_chunks: number;
+  pages: number;
+  preview: string;
+}
+
+export interface DocumentUploadResponse {
+  filename: string;
+  total_pages: number;
+  summary: string;
 }
 
 export interface AgentResponse {
