@@ -1,9 +1,37 @@
+# Environment & Credentials
 .env
-__pycache__/
-*.py[cod]
-data/chroma/
+.env*.local
 credentials.json
 token.json
-.vscode
 calendar_token.json
- Multi-agent_service_platform_working_.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# ChromaDB data
+data/chroma/
+
+# Node.js & Next.js
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+frontend/build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Documentation / Large PDF
+Multi-agent_service_platform_working_.pdf
